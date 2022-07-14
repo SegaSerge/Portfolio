@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup as BS
 
 name = "findbyitembot"
 name1 = "find_by_item_bot"
-bot = telebot.TeleBot("5512409293:AAFl1naUMAO7wB-yWZK7wdiOkSHJGoEQa5Y")
+bot = telebot.TeleBot("")
 
 
 @bot.message_handler(commands=['start'])
