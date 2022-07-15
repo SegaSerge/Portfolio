@@ -58,7 +58,6 @@ class PiterGSM:
         catalog = []
         self.text = InfoPhoto().get_text(bts=bts, name_file=name_file)
         if self.text == "NORESULT":
-            print("NOO")
             catalog = ["NORESULT"]
             return catalog
         else:
@@ -69,7 +68,8 @@ class PiterGSM:
                 catalog.append({
                     'title': item.find('h3', class_='prod-card__title').get_text(strip=True),
                     'cost': item.find('div', class_='price__now').get_text(strip=True),
-                    'link': item.find('a', class_='prod-card__link').get('href')
+                    'link': item.find('a', class_='prod-card__link').get('href'),
+                    'image': item.find('img', class_='prod-card__img').get('src'),
                 })
             return catalog
 
@@ -132,19 +132,20 @@ def get_photo(message):
     # т.к библиотека на основе фото создаёт векторы. И сразу удаляем, чтобы не занимало место
 
     catalog = PiterGSM().get_content(bts=downloaded_file, name_file=name_file)
-    markup = types.InlineKeyboardMarkup()
+
     for item in catalog:
+        markup = types.InlineKeyboardMarkup()
         if item == "NORESULT":
-            markup.add(types.InlineKeyboardButton(f"Мы ничего не нашли,\n попробуйте сделать другое фото",
-                                                  url="https://pitergsm.ru/search/index.php?q=&s="))
+            bot.send_message(message.chat.id, "мы ничего не нашли.. попробуйте сделать более точное фото, если это не "
+                                              "поможет - скорее всего такого товара нет")
             break
         else:
-            itm = str(item['link'])
-            print(itm)
-            markup.add(types.InlineKeyboardButton(f"{item['title']} \n- "
-                                                  f"{str(item['cost']).replace('a', ' rub')}",
+            markup.add(types.InlineKeyboardButton(f"{str(item['cost']).replace('a', ' rub')}",
                                                   url=f"https://pitergsm.ru{item['link']}"))
-    bot.send_message(message.chat.id, "Нашли:", reply_markup=markup)
+
+            bot.send_photo(message.chat.id, caption=f"{item['title']}",
+                           photo=f"https://pitergsm.ru{item['image']}",
+                           reply_markup=markup)
 
 
 @bot.message_handler(commands=["Help"])
