@@ -1,4 +1,6 @@
 import os
+import threading
+
 import pytesseract
 import requests
 import telebot
@@ -67,6 +69,7 @@ class PiterGSM:
                 catalog.append({
                     'title': item.find('h3', class_='prod-card__title').get_text(strip=True),
                     'cost': item.find('div', class_='price__now').get_text(strip=True),
+                    'link': item.find('a', class_='prod-card__link').get('href')
                 })
             return catalog
 
@@ -136,9 +139,11 @@ def get_photo(message):
                                                   url="https://pitergsm.ru/search/index.php?q=&s="))
             break
         else:
+            itm = str(item['link'])
+            print(itm)
             markup.add(types.InlineKeyboardButton(f"{item['title']} \n- "
                                                   f"{str(item['cost']).replace('a', ' rub')}",
-                                                  url=f"https://pitergsm.ru/search/index.php?q={item['title']}&s="))
+                                                  url=f"https://pitergsm.ru{item['link']}"))
     bot.send_message(message.chat.id, "Нашли:", reply_markup=markup)
 
 
@@ -149,9 +154,9 @@ def help_(message):
                     "просто так получилось)\n" \
                     "чтобы найти товар(если он есть) - достаточно отправить фотографию ценника товара \nили " \
                     "фотку с названием электроники \nи если он есть на сайте - тебе обязательно покажется его цена\n" \
-                    "если не нашли товар - сделайте повторно фотографию, чтобы название было чэтко видно" \
-                    "НО может быть и так, что на сайте нет такого товара(это магазин электроники)" \
-                    "в результате будет список ссылок на прямой поиск товара на сайте" \
+                    "если не нашли товар - сделайте повторно фотографию, чтобы название было чэтко видно " \
+                    "НО может быть и так, что на сайте нет такого товара(это магазин электроники) " \
+                    "в результате будет список ссылок на прямой поиск товара на сайте " \
                     "чтобы перейти на сайт по прямой ссылке - нажми кнопку Website"
 
     bot.send_message(message.chat.id, f"{text_for_help}")
@@ -164,9 +169,11 @@ def website(message):
     markup.add(types.InlineKeyboardButton("Посетить главную страницу сайта", url="https://pitergsm.ru/"))
     bot.send_message(message.chat.id, "перейти на сайт?", reply_markup=markup)
 
+
 def main():
     bot.polling(none_stop=True)
 
+
 if __name__ == '__main__':
-    main()
-    
+    th1 = threading.Thread(target=main())
+    th1.start()
